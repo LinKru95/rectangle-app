@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchRectangle, updateRectangle } from './api/rectangleApi';
 
 function App() {
-  const [rectangle, setRectangle] = useState(null); // Start with null
+  const [rectangle, setRectangle] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -11,21 +11,19 @@ function App() {
   const [startHeight, setStartHeight] = useState(0);
 
   useEffect(() => {
-    // Fetch the rectangle data when the component mounts
     const fetchData = async () => {
       try {
         const data = await fetchRectangle();
-        setRectangle(data); // Set the fetched rectangle
+        setRectangle(data);
       } catch (error) {
         console.error('Error fetching rectangle:', error);
       }
     };
     fetchData();
-  }, []); // Empty array to run only on mount
+  }, []);
 
-  // Handle Submit button press
   const handleSubmit = async () => {
-    if (!rectangle) return; // Don't proceed if no rectangle data
+    if (!rectangle) return;
     setIsSubmitting(true);
     try {
       await updateRectangle(rectangle);
@@ -35,7 +33,6 @@ function App() {
     setIsSubmitting(false);
   };
 
-  // Handle Refresh button press
   const handleRefresh = async () => {
     try {
       const data = await fetchRectangle();
@@ -45,7 +42,6 @@ function App() {
     }
   };
 
-  // Mouse events for resizing
   const handleMouseDown = (e) => {
     setIsResizing(true);
     setStartX(e.clientX);
@@ -58,13 +54,15 @@ function App() {
     if (isResizing) {
       const deltaX = e.clientX - startX;
       const deltaY = e.clientY - startY;
-      const newWidth = Math.max(startWidth + deltaX, 10);  // Minimum width: 10
-      const newHeight = Math.max(startHeight + deltaY, 10);  // Minimum height: 10
+      const newWidth = Math.max(startWidth + deltaX, 10);
+      const newHeight = Math.max(startHeight + deltaY, 10);
+      const constrainedWidth = Math.min(newWidth, 500);
+      const constrainedHeight = Math.min(newHeight, 500);
 
       setRectangle((prevRect) => ({
         ...prevRect,
-        width: newWidth,
-        height: newHeight,
+        width: constrainedWidth,
+        height: constrainedHeight,
       }));
     }
   };
@@ -73,19 +71,16 @@ function App() {
     setIsResizing(false);
   };
 
-  // If rectangle is not yet fetched, display loading spinner
   if (!rectangle) {
     return <div>Loading...</div>;
   }
 
-  // Set default x and y values if the data is missing
   const { x = 0, y = 0, width, height } = rectangle;
 
   return (
     <div>
       <svg
-        width="100%"
-        height="100%"
+        className="svg-container"
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
@@ -96,20 +91,22 @@ function App() {
           width={width}
           height={height}
           fill="blue"
-          onMouseDown={handleMouseDown}  // Start resizing
+          onMouseDown={handleMouseDown}
         />
       </svg>
 
-      <div>
-        <p>Width: {width}</p>
-        <p>Height: {height}</p>
-        <p>Perimeter: {2 * (width + height)}</p>
+      {/* Container for the buttons and labels */}
+      <div className="top-right-container">
+        <div>
+          <p>Width: {width}</p>
+          <p>Height: {height}</p>
+          <p>Perimeter: {2 * (width + height)}</p>
+        </div>
+        <button onClick={handleRefresh}>Refresh</button>
+        <button onClick={handleSubmit} disabled={isSubmitting}>
+          {isSubmitting ? 'Submitting...' : 'Submit'}
+        </button>
       </div>
-
-      <button onClick={handleRefresh}>Refresh</button>
-      <button onClick={handleSubmit} disabled={isSubmitting}>
-        {isSubmitting ? 'Submitting...' : 'Submit'}
-      </button>
     </div>
   );
 }

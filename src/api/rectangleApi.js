@@ -1,4 +1,4 @@
-const API_URL = "https://localhost:5000/api/rectangle"; // Update with your API URL
+const API_URL = "https://localhost:5000/api/rectangle";
 
 export const fetchRectangle = async () => {
   try {
@@ -33,9 +33,8 @@ export const updateRectangle = async (rectangle) => {
         throw new Error("Failed to update rectangle");
       }
 
-      // Parse the response as JSON
       const data = await response.json();
-      return data;  // data will now be { message: "Rectangle dimensions saved." }
+      return data;
     } catch (error) {
       console.error("Error updating rectangle:", error);
       throw error;
