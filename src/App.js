@@ -3,6 +3,8 @@ import { fetchRectangle, updateRectangle } from './api/rectangleApi';
 
 function App() {
   const [rectangle, setRectangle] = useState(null);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusType, setStatusType] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -23,13 +25,39 @@ function App() {
   }, []);
 
   const handleSubmit = async () => {
-    if (!rectangle) return;
-    setIsSubmitting(true);
-    try {
-      await updateRectangle(rectangle);
-    } catch (error) {
-      console.error('Error updating rectangle:', error);
+    if (!rectangle) {
+       return;
     }
+
+    setIsSubmitting(true);
+    setStatusMessage("");
+
+    try {
+      const response = await updateRectangle(rectangle);
+
+      if (response.success) {
+        setStatusMessage(response.message);
+        setStatusType("success");
+      } else {
+        let errorMessage = response.message.replace("Failed to update rectangle: ", "");
+
+        try {
+          const errorData = JSON.parse(errorMessage);
+
+          if (errorData.errors && Array.isArray(errorData.errors)) {
+            errorMessage = errorData.errors.join(", ");
+          }
+        } catch (e) { }
+
+        setStatusMessage(`Failed to update rectangle: ${errorMessage}`);
+        setStatusType("error");
+      }
+    } catch (error) {
+      console.error("Error updating rectangle:", error);
+      setStatusMessage("An error occurred while updating the rectangle.");
+      setStatusType("error");
+    }
+
     setIsSubmitting(false);
   };
 
@@ -58,7 +86,6 @@ function App() {
       const newHeight = Math.max(startHeight + deltaY, 10);
       const constrainedWidth = Math.min(newWidth, 500);
       const constrainedHeight = Math.min(newHeight, 500);
-
       setRectangle((prevRect) => ({
         ...prevRect,
         width: constrainedWidth,
@@ -102,6 +129,11 @@ function App() {
           <p>Height: {height}</p>
           <p>Perimeter: {2 * (width + height)}</p>
         </div>
+        {statusMessage && (
+          <div className={`status-message ${statusType === "success" ? "success" : "error"}`}>
+            {statusMessage}
+          </div>
+        )}
         <button onClick={handleRefresh}>Refresh</button>
         <button onClick={handleSubmit} disabled={isSubmitting}>
           {isSubmitting ? 'Submitting...' : 'Submit'}
