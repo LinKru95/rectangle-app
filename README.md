@@ -3,6 +3,12 @@
 This is a React.js application that allows users to fetch, resize, and update a rectangle
 via a backend API.
 
+## Table of Contents
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Running the Project](#running-the-project)
+
 ## Features
 - Fetch rectangle dimensions from the backend
 - Resize the rectangle using mouse drag
